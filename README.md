@@ -1,6 +1,18 @@
 # object-detection-project
 
-# how to run:
+
+## workflows
+
+-constant
+-config_entity
+-artifact_entity
+-components
+-pipeline
+-app.py
+
+
+
+## how to run:
 
 ```bash
 conda create -n objectdetect python=3.7 -y
