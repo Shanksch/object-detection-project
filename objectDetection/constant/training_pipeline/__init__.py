@@ -15,7 +15,7 @@ DATA_DOWNLOAD_URL: str = "https://github.com/Shanksch/data/raw/refs/heads/main/o
 
 
 """
-Data Validation realted contant start with DATA_VALIDATION VAR NAME
+Data Validation realted constant start with DATA_VALIDATION VAR NAME
 """
 
 DATA_VALIDATION_DIR_NAME: str = "data_validation"
@@ -33,7 +33,7 @@ MODEL_TRAINER_DIR_NAME: str = "model_trainer"
 
 MODEL_TRAINER_PRETRAINED_WEIGHT_NAME: str = "yolov5s.pt"
 
-MODEL_TRAINER_NO_EPOCHS: int = 1
+MODEL_TRAINER_NO_EPOCHS: int = 25
 
 MODEL_TRAINER_BATCH_SIZE: int = 16
 
