@@ -23,7 +23,7 @@ class ModelTrainer:
             logging.info("Unzipping data")
             os.system("unzip object_detection_dataset.zip")
             os.system("rm object_detection_dataset.zip")
-
+           
             with open("data.yaml", 'r') as stream:
                 num_classes = str(yaml.safe_load(stream)['nc'])
 
@@ -38,7 +38,7 @@ class ModelTrainer:
             with open(f'yolov5/models/custom_{model_config_file_name}.yaml', 'w') as f:
                 yaml.dump(config, f)
 
-            os.system(f"cd yolov5/ && python train.py --img 416 --batch {self.model_trainer_config.batch_size} --epochs {self.model_trainer_config.no_epochs} --data ../data.yaml --cfg ./models/custom_yolov5s.yaml --weights {self.model_trainer_config.weight_name} --name yolov5s_results  --cache")
+            os.system(f"cd yolov5/ && python train.py --img 416 --batch {self.model_trainer_config.batch_size} --epochs {self.model_trainer_config.no_epochs} --data ../object_detection_dataset/data.yaml --cfg ./models/custom_yolov5s.yaml --weights {self.model_trainer_config.weight_name} --name yolov5s_results  --cache")
             os.system("cp yolov5/runs/train/yolov5s_results/weights/best.pt yolov5/")
             os.makedirs(self.model_trainer_config.model_trainer_dir, exist_ok=True)
             os.system(f"cp yolov5/runs/train/yolov5s_results/weights/best.pt {self.model_trainer_config.model_trainer_dir}/")

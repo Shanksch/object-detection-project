@@ -22,7 +22,7 @@ for label in labels:
     os.makedirs(img_path)
 
     #open camera
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     print(f"collecting images for{label}")
     time.sleep(10)
 
@@ -30,7 +30,7 @@ for label in labels:
         ret, frame = cap.read()
         imagename = os.path.join(IMAGE_PATH,label,label+'.'+'{}.jpg'.format(str(uuid.uuid1())))
         cv2.imwrite(imagename,frame)
-        time.sleep(2)
+        time.sleep(5)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
