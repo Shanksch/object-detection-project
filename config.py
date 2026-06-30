@@ -7,13 +7,20 @@ Modify these values according to your system setup and requirements.
 """
 
 import os
+import sys
+from pathlib import Path
+from typing import Optional
 
 # =====================
 # SYSTEM CONFIGURATION
 # =====================
 
-# Python interpreter path (update this to match your environment)
-PYTHON_PATH = "C:\\Users\\shash\\anaconda3\\envs\\objectdetect\\python.exe"
+# Auto-detect Python interpreter path for better portability
+def get_python_path() -> str:
+    """Get the current Python interpreter path"""
+    return sys.executable
+
+PYTHON_PATH = get_python_path()
 
 # =====================
 # MODEL CONFIGURATION
@@ -39,14 +46,25 @@ MAX_DETECTIONS = 1000
 # =====================
 
 # Flask server configuration
-FLASK_HOST = "0.0.0.0"
-FLASK_PORT = 8080
-FLASK_DEBUG = False
+FLASK_HOST = os.getenv("FLASK_HOST", "0.0.0.0")
+FLASK_PORT = int(os.getenv("FLASK_PORT", "8080"))
+FLASK_DEBUG = os.getenv("FLASK_DEBUG", "False").lower() == "true"
 
 # File paths
 DATA_DIR = "data"
 UPLOAD_FILENAME = "inputImage.jpg"
 RESULTS_DIR = "yolov5/runs/detect"
+
+# Security settings
+MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", "10485760"))  # 10MB default
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.bmp'}
+UPLOAD_FOLDER = os.path.join(DATA_DIR, "uploads")
+TEMP_FOLDER = os.path.join(DATA_DIR, "temp")
+
+# Performance settings
+MODEL_CACHE_SIZE = int(os.getenv("MODEL_CACHE_SIZE", "1"))
+MAX_CONCURRENT_DETECTIONS = int(os.getenv("MAX_CONCURRENT_DETECTIONS", "4"))
+DETECTION_TIMEOUT = int(os.getenv("DETECTION_TIMEOUT", "30"))  # seconds
 
 # =====================
 # DETECTION CLASSES
@@ -91,12 +109,31 @@ def validate_config():
         except Exception as e:
             errors.append(f"Cannot create data directory: {e}")
     
+    # Create upload and temp directories
+    for directory in [UPLOAD_FOLDER, TEMP_FOLDER]:
+        if not os.path.exists(directory):
+            try:
+                os.makedirs(directory, exist_ok=True)
+            except Exception as e:
+                errors.append(f"Cannot create {directory}: {e}")
+    
     # Validate thresholds
     if not 0.0 <= CONFIDENCE_THRESHOLD <= 1.0:
         errors.append("CONFIDENCE_THRESHOLD must be between 0.0 and 1.0")
     
     if not 0.0 <= IOU_THRESHOLD <= 1.0:
         errors.append("IOU_THRESHOLD must be between 0.0 and 1.0")
+    
+    # Validate file size limits
+    if MAX_FILE_SIZE <= 0:
+        errors.append("MAX_FILE_SIZE must be positive")
+    
+    # Validate performance settings
+    if MODEL_CACHE_SIZE < 0:
+        errors.append("MODEL_CACHE_SIZE must be non-negative")
+    
+    if MAX_CONCURRENT_DETECTIONS <= 0:
+        errors.append("MAX_CONCURRENT_DETECTIONS must be positive")
     
     return errors
 

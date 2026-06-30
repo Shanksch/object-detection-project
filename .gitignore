@@ -169,3 +169,6 @@ cython_debug/
 artifacts/*
 CollectedImages/*
 yolov5/*
+data/
+object_detection_dataset*
+object-detection-studio/
