@@ -1,6 +1,6 @@
 import os
 import sys
-from six.moves import urllib
+import urllib.request
 import zipfile
 from objectDetection.logger import logging
 from objectDetection.exception import SignException

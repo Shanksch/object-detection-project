@@ -15,7 +15,7 @@ if exist "%VENV_PYTHON%" (
 
 echo Using "%PYTHON_EXE%"
 echo Starting Flask app...
-"%PYTHON_EXE%" "%SCRIPT_ROOT%app_clean.py"
+"%PYTHON_EXE%" -m app.main
 
 echo.
 echo 👋 Application stopped.

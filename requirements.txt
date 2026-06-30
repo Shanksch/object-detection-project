@@ -1,47 +1,42 @@
-dill==0.3.5.1
-from-root==1.0.2
-boto3
-mypy-boto3-s3
-flask-cors
-flask
+# =========================================
+# Object Detection Studio — Dependencies
+# =========================================
+# Core framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+python-multipart>=0.0.17
 
-#yolov7 requirements
-# Usage: pip install -r requirements.txt
+# ML / AI
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+Pillow>=10.0.0
+opencv-python>=4.8.0
+PyYAML>=6.0
 
-# Base ----------------------------------------
-matplotlib>=3.2.2
-numpy>=1.18.5
-opencv-python>=4.1.1
-Pillow>=7.1.2
-PyYAML>=5.3.1
-requests>=2.23.0
-scipy>=1.4.1
-torch>=1.7.0
-torchvision>=0.8.1
-tqdm>=4.41.0
-protobuf<4.21.3
+# HTTP
+httpx>=0.27.0
+requests>=2.32.2
 
-# Logging -------------------------------------
-tensorboard>=2.4.1
-# wandb
+# YOLOv5 runtime dependencies
+gitpython>=3.1.30
+thop>=0.1.1
+ultralytics>=8.2.34
 
-# Plotting ------------------------------------
-pandas>=1.1.4
-seaborn>=0.11.0
+# Data
+pandas>=2.0.0
+matplotlib>=3.7.0
+scipy>=1.10.0
+seaborn>=0.12.0
 
-# Export --------------------------------------
-# coremltools>=4.1  # CoreML export
-# onnx>=1.9.0  # ONNX export
-# onnx-simplifier>=0.3.6  # ONNX simplifier
-# scikit-learn==0.19.2  # CoreML quantization
-# tensorflow>=2.4.1  # TFLite export
-# tensorflowjs>=3.9.0  # TF.js export
-# openvino-dev  # OpenVINO export
+# Monitoring
+tqdm>=4.65.0
+psutil>=5.9.0
 
-# Extras --------------------------------------
-ipython  # interactive notebook
-psutil  # system utilization
-thop  # FLOPs computation
-# albumentations>=1.0.3
-# pycocotools>=2.0  # COCO mAP
-# roboflow
+# Logging / Utilities
+python-dotenv>=1.0.0
+
+# Training (optional)
+tensorboard>=2.14.0

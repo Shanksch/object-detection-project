@@ -1,6 +1,6 @@
 # 🎯 Object Detection Web Application
 
-A Flask-based web application for real-time object detection using YOLOv5. Upload images or use live camera feed to detect objects with bounding boxes and confidence scores.
+A FastAPI-based web application for real-time object detection using YOLOv5. Upload images or use live camera feed to detect objects with bounding boxes and confidence scores.
 
 ## 📋 Features
 
@@ -33,6 +33,7 @@ The trained model can detect:
 ### 2. Access the Web Interface
 Open your browser and navigate to:
 - **Main App**: http://localhost:8080/
+- **API Docs**: http://localhost:8080/docs
 - **Health Check**: http://localhost:8080/health
 
 ### 3. Upload and Detect
@@ -45,16 +46,21 @@ Open your browser and navigate to:
 
 ```
 object-detection-project/
-├── app.py           # Main Flask application (CLEANED)
-├── config.py             # Configuration settings
+├── app/                  # FastAPI application (production)
+│   ├── main.py           # FastAPI entry point
+│   ├── config/           # Pydantic settings
+│   ├── api/routes/       # API route handlers
+│   ├── services/         # Detection, training, image services
+│   ├── core/             # Exceptions, logging
+│   └── ml/pipeline/      # ML training pipeline
+│
 ├── run_app.bat           # Startup script
-├── README.md       # This documentation
+├── README.md             # This documentation
 │
 ├── templates/
-│   ├── index.html        # Main web interface
-│   └── test.html         # Simple test interface
+│   └── modern_ui.html    # Main web interface
 │
-├── objectDetection/      # Custom detection pipeline
+├── objectDetection/      # Legacy detection pipeline
 │   ├── components/       # Data processing components
 │   ├── pipeline/         # Training and inference pipelines
 │   ├── utils/            # Utility functions
@@ -66,7 +72,6 @@ object-detection-project/
 │   └── ...              # Other YOLOv5 files
 │
 └── data/                # Input/output data
-    └── inputImage.jpg   # Uploaded images
 ```
 
 ## 🌐 API Endpoints
@@ -75,30 +80,52 @@ object-detection-project/
 ```http
 GET /health
 ```
-Returns API status and configuration info.
+Returns API status, model info, and uptime.
 
-### Image Detection
+### Image Detection (JSON)
 ```http
-POST /predict
+POST /api/v1/predict
 Content-Type: application/json
 
 {
   "image": "base64_encoded_image_string"
 }
 ```
-Returns detection results with bounding boxes.
+Returns annotated image and structured detection data.
 
-### Live Camera Detection
+### Image Detection (File Upload)
 ```http
-GET /live
+POST /api/v1/predict/file
+Content-Type: multipart/form-data
 ```
-Starts live camera detection (opens detection window).
+Upload an image file directly (more efficient than base64).
+
+### Live Camera Status
+```http
+GET /api/v1/live
+```
+Returns live camera detection readiness status.
 
 ### Model Training
 ```http
-GET /train
+POST /api/v1/train
+Content-Type: application/json
+
+{}
 ```
-Starts the model training pipeline (time-intensive).
+Starts the model training pipeline as a background task. Returns a task_id for polling.
+
+### Training Status
+```http
+GET /api/v1/train/{task_id}
+```
+Poll training progress by task ID.
+
+### API Documentation
+```http
+GET /docs
+```
+Interactive Swagger UI with all endpoints.
 
 ## ⚙️ Configuration
 
@@ -111,7 +138,7 @@ Edit `config.py` to customize:
 ## 🔧 System Requirements
 
 - **Python**: 3.7+ (Conda environment recommended)
-- **Dependencies**: Flask, YOLOv5, OpenCV, PyTorch
+- **Dependencies**: FastAPI, YOLOv5, OpenCV, PyTorch
 - **OS**: Windows (paths configured for Windows)
 - **Memory**: 4GB+ RAM recommended
 - **Camera**: Optional for live detection
@@ -125,11 +152,12 @@ Edit `config.py` to customize:
 
 ## 🧪 Testing
 
-Use the test page (`http://localhost:8080/test-page`) for easy testing:
-1. **API Test Button**: Verifies server connection
+Use the main UI (`http://localhost:8080/`) or the interactive API docs (`http://localhost:8080/docs`):
+1. **Health Check**: Verifies server and model status
 2. **Image Upload**: Drag & drop or select files
 3. **Detection Results**: Side-by-side original and detected images
-4. **Status Messages**: Real-time feedback on operations
+4. **Live Camera**: Real-time detection via webcam
+5. **API Docs**: Test any endpoint directly from the browser
 
 ## 🐛 Troubleshooting
 

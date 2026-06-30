@@ -166,9 +166,25 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# ── Project-specific ignores ──────────────────────────
+# Data & datasets (downloaded at runtime)
+data/
+datasets/
+object_detection_dataset/
+object_detection_dataset.zip
+
+# Model weights & training artifacts
+yolov5/*
 artifacts/*
 CollectedImages/*
-yolov5/*
-data/
-object_detection_dataset*
+
+# Hugging Face Spaces clone (separate repo)
 object-detection-studio/
+
+# Logs
+logs/
+*.log
+
+# Environment secrets (only .env.example is tracked)
+.env

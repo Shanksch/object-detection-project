@@ -813,7 +813,7 @@
                 
                 const startTime = Date.now();
                 
-                const response = await fetch('/predict', {
+                const response = await fetch('/api/v1/predict', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -824,12 +824,14 @@
                 const data = await response.json();
                 const processTime = Date.now() - startTime;
                 
-                if (data.error) {
-                    showStatus(`❌ Detection failed: ${data.error}`, 'error');
+                if (data.error || !data.success) {
+                    showStatus(`❌ Detection failed: ${data.message || data.error || 'Unknown error'}`, 'error');
                 } else if (data.image) {
                     displayDetectionResult(data.image);
-                    updateDetectionStats(processTime);
-                    showStatus('✅ Object detection completed successfully!', 'success');
+                    const inferenceTime = data.metadata ? data.metadata.inference_time_ms : processTime;
+                    const objectCount = data.metadata ? data.metadata.count : 0;
+                    updateDetectionStats(processTime, inferenceTime, objectCount);
+                    showStatus(`✅ Object detection completed! Found ${objectCount} object(s) in ${Math.round(inferenceTime)}ms`, 'success');
                 } else {
                     showStatus('❌ Unexpected response format', 'error');
                 }
@@ -850,12 +852,13 @@
             document.getElementById('detectionInfo').style.display = 'block';
         }
 
-        function updateDetectionStats(processTime) {
+        function updateDetectionStats(processTime, inferenceTime, objectCount) {
             detectionCount++;
             totalProcessTime += processTime;
             
             document.getElementById('detectionCount').textContent = detectionCount;
-            document.getElementById('processTime').textContent = `${processTime}ms`;
+            document.getElementById('objectCount').textContent = objectCount || 0;
+            document.getElementById('processTime').textContent = `${Math.round(inferenceTime || processTime)}ms`;
             document.getElementById('avgSpeed').textContent = `${Math.round(totalProcessTime / detectionCount)}ms`;
         }
 
@@ -1029,13 +1032,17 @@
             try {
                 showStatus('🏋️ Starting model training... This may take several hours.', 'warning');
                 
-                const response = await fetch('/train');
+                const response = await fetch('/api/v1/train', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
                 const data = await response.json();
                 
                 if (data.error) {
-                    showStatus(`❌ Training failed: ${data.error}`, 'error');
+                    showStatus(`❌ Training failed: ${data.message || data.error}`, 'error');
                 } else {
-                    showStatus('✅ Model training completed successfully!', 'success');
+                    showStatus(`✅ Training started! Task ID: ${data.task_id}. Poll status at /api/v1/train/${data.task_id}`, 'success');
                 }
                 
             } catch (error) {
@@ -1237,7 +1244,7 @@
 
                 // Make detection request
                 const startTime = Date.now();
-                const response = await fetch('/predict', {
+                const response = await fetch('/api/v1/predict', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1248,16 +1255,18 @@
                 const data = await response.json();
                 const processTime = Date.now() - startTime;
 
-                if (data.error) {
-                    console.warn('Auto-detection failed:', data.error);
+                if (data.error || !data.success) {
+                    console.warn('Auto-detection failed:', data.message || data.error);
                 } else if (data.image) {
                     // Update results quietly (without status messages)
                     imageData = currentImageData;
                     displayOriginalImage(dataURL);
                     displayDetectionResult(data.image);
-                    updateDetectionStats(processTime);
+                    const inferenceTime = data.metadata ? data.metadata.inference_time_ms : processTime;
+                    const objectCount = data.metadata ? data.metadata.count : 0;
+                    updateDetectionStats(processTime, inferenceTime, objectCount);
                     
-                    console.log(`Auto-detection completed in ${processTime}ms`);
+                    console.log(`Auto-detection completed in ${processTime}ms — ${objectCount} objects`);
                 }
                 
             } catch (error) {

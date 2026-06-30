@@ -1,0 +1,61 @@
+# ============================================================
+#  .dockerignore — keep the build context small & fast
+# ============================================================
+
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS junk
+Thumbs.db
+.DS_Store
+
+# Datasets & collected images (large, not needed at runtime)
+CollectedImages/
+datasets/
+object_detection_dataset/
+object_detection_dataset.zip
+data/
+
+# Training artifacts (not needed for inference image)
+artifacts/
+logs/
+log/
+
+# Docs / misc
+README.md
+LICENSE
+*.md
+*.bat
+
+# Docker (avoid recursive context)
+dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Environment (real .env is injected at runtime, we only COPY .env.example)
+.env
+
+# Old app entry point
+app_clean.py
+setup.py
+config.py
+
+# Gemini / agent metadata
+.gemini/
+.agents/
