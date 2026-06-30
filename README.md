@@ -1,6 +1,8 @@
 # 🎯 Object Detection Web Application
 
-A FastAPI-based web application for real-time object detection using YOLOv5. Upload images or use live camera feed to detect objects with bounding boxes and confidence scores.
+A FastAPI-based web application for real-time object detection using YOLOv5. Upload images or use the REST API to detect objects with bounding boxes and confidence scores.
+
+**Live Demo**: [https://shasha-nks-object-detection-studio.hf.space](https://shasha-nks-object-detection-studio.hf.space)
 
 ## 📋 Features
 
@@ -9,11 +11,11 @@ A FastAPI-based web application for real-time object detection using YOLOv5. Upl
 - **Web Interface**: User-friendly HTML interface for easy testing
 - **REST API**: JSON API endpoints for integration
 - **Model Training**: Built-in pipeline for training custom models
-- **Multi-class Detection**: Supports person, vehicle, and other object categories
+- **Dockerized**: Fully containerized for cloud deployment (Hugging Face Spaces)
 
 ## 🎯 Detected Objects
 
-The trained model can detect:
+The trained model is based on the COCO128 dataset and can detect:
 - **Person** 👤
 - **Bicycle** 🚲  
 - **Car** 🚗
@@ -24,170 +26,131 @@ The trained model can detect:
 
 ## 🚀 Quick Start
 
-### 1. Run the Application
+### Prerequisites
+- Python 3.11+
+- Git LFS (to pull the model weights from a separate source)
+
+### 1. Clone & Setup
 ```bash
-# Start the server
-.\run_app.bat
+git clone https://github.com/Shanksch/object-detection-project.git
+cd object-detection-project
+
+# Create virtual environment
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### 2. Access the Web Interface
-Open your browser and navigate to:
-- **Main App**: http://localhost:8080/
-- **API Docs**: http://localhost:8080/docs
-- **Health Check**: http://localhost:8080/health
+### 2. Add Model Weights
+The YOLOv5 model weights (`best.pt`) are not included in the repo (too large for Git).
+You need to place them manually:
+```
+yolov5/
+├── best.pt          # Your trained model weights
+└── ...              # YOLOv5 framework files
+```
 
-### 3. Upload and Detect
-1. Go to the test page
-2. Click "Select Image" and choose a photo
-3. Click "Detect Objects" to see results
-4. View the original and result images with bounding boxes
+### 3. Run the Application
+```bash
+# Option A: Use the batch script (Windows)
+.\run_app.bat
+
+# Option B: Run directly
+python -m app.main
+```
+
+### 4. Access the Web Interface
+Open your browser and navigate to:
+- **Main App**: http://localhost:8000/
+- **API Docs**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
 
 ## 📂 Project Structure
 
 ```
 object-detection-project/
-├── app/                  # FastAPI application (production)
-│   ├── main.py           # FastAPI entry point
-│   ├── config/           # Pydantic settings
-│   ├── api/routes/       # API route handlers
-│   ├── services/         # Detection, training, image services
-│   ├── core/             # Exceptions, logging
-│   └── ml/pipeline/      # ML training pipeline
+├── app/                      # FastAPI application (production)
+│   ├── main.py               # FastAPI entry point
+│   ├── config/               # Pydantic settings (.env based)
+│   ├── api/routes/           # API route handlers
+│   │   ├── detection.py      # /predict, /predict/file endpoints
+│   │   ├── health.py         # /health endpoint
+│   │   └── training.py       # /train endpoint
+│   ├── services/             # Business logic
+│   │   ├── model_manager.py  # YOLOv5 model loading & inference
+│   │   ├── detection_service.py
+│   │   ├── image_service.py
+│   │   └── training_service.py
+│   ├── core/                 # Exceptions, logging
+│   └── ml/pipeline/          # ML training pipeline
 │
-├── run_app.bat           # Startup script
-├── README.md             # This documentation
+├── objectDetection/          # Legacy ML pipeline
+│   ├── components/           # Data ingestion, validation, training
+│   ├── pipeline/             # Training pipeline orchestration
+│   ├── logger/               # Custom logging
+│   └── utils/                # Utility functions
 │
 ├── templates/
-│   └── modern_ui.html    # Main web interface
+│   └── modern_ui.html        # Main web interface
 │
-├── objectDetection/      # Legacy detection pipeline
-│   ├── components/       # Data processing components
-│   ├── pipeline/         # Training and inference pipelines
-│   ├── utils/            # Utility functions
-│   └── exception/        # Custom exception handling
-│
-├── yolov5/              # YOLOv5 framework
-│   ├── detect.py        # Detection script
-│   ├── best.pt          # Trained model weights
-│   └── ...              # Other YOLOv5 files
-│
-└── data/                # Input/output data
+├── static/                   # Static assets
+├── Dockerfile                # Docker configuration
+├── .env.example              # Environment variables template
+├── requirements.txt          # Python dependencies
+├── setup.py                  # Package setup
+└── run_app.bat               # Windows startup script
 ```
+
+> **Note**: The following directories are local-only and not tracked in Git:
+> `yolov5/`, `datasets/`, `data/`, `logs/`, `artifacts/`, `object-detection-studio/`
 
 ## 🌐 API Endpoints
 
-### Health Check
-```http
-GET /health
-```
-Returns API status, model info, and uptime.
-
-### Image Detection (JSON)
-```http
-POST /api/v1/predict
-Content-Type: application/json
-
-{
-  "image": "base64_encoded_image_string"
-}
-```
-Returns annotated image and structured detection data.
-
-### Image Detection (File Upload)
-```http
-POST /api/v1/predict/file
-Content-Type: multipart/form-data
-```
-Upload an image file directly (more efficient than base64).
-
-### Live Camera Status
-```http
-GET /api/v1/live
-```
-Returns live camera detection readiness status.
-
-### Model Training
-```http
-POST /api/v1/train
-Content-Type: application/json
-
-{}
-```
-Starts the model training pipeline as a background task. Returns a task_id for polling.
-
-### Training Status
-```http
-GET /api/v1/train/{task_id}
-```
-Poll training progress by task ID.
-
-### API Documentation
-```http
-GET /docs
-```
-Interactive Swagger UI with all endpoints.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | API status, model info, uptime |
+| `POST` | `/api/v1/predict` | Detect objects in a base64-encoded image |
+| `POST` | `/api/v1/predict/file` | Detect objects in an uploaded image file |
+| `GET` | `/api/v1/live` | Live camera detection status |
+| `POST` | `/api/v1/train` | Start model training (background task) |
+| `GET` | `/api/v1/train/{task_id}` | Poll training progress |
+| `GET` | `/docs` | Interactive Swagger API docs |
 
 ## ⚙️ Configuration
 
-Edit `config.py` to customize:
-- Python environment path
-- Model confidence threshold
-- Image size and detection parameters
-- Server host and port settings
+Copy `.env.example` to `.env` and customize:
 
-## 🔧 System Requirements
+```env
+# Server
+HOST=0.0.0.0
+PORT=8000
+DEBUG=false
 
-- **Python**: 3.7+ (Conda environment recommended)
-- **Dependencies**: FastAPI, YOLOv5, OpenCV, PyTorch
-- **OS**: Windows (paths configured for Windows)
-- **Memory**: 4GB+ RAM recommended
-- **Camera**: Optional for live detection
+# Model
+MODEL_WEIGHTS=best.pt
+IMAGE_SIZE=416
+CONFIDENCE_THRESHOLD=0.5
+IOU_THRESHOLD=0.45
+DEVICE=auto
+```
+
+## 🐳 Docker Deployment
+
+```bash
+docker build -t object-detection-studio .
+docker run -d -p 7860:7860 object-detection-studio
+```
+
+The app is also deployed on [Hugging Face Spaces](https://huggingface.co/spaces/shasha-nks/object-detection-studio).
 
 ## 📊 Performance
 
-- **Detection Speed**: ~40-60ms per image
-- **Model Size**: 7.2M parameters
-- **Accuracy**: Custom trained on object detection dataset
+- **Detection Speed**: ~40-60ms per image (CPU)
+- **Model Size**: 7.2M parameters (YOLOv5s)
 - **Input Size**: 416x416 pixels (configurable)
-
-## 🧪 Testing
-
-Use the main UI (`http://localhost:8080/`) or the interactive API docs (`http://localhost:8080/docs`):
-1. **Health Check**: Verifies server and model status
-2. **Image Upload**: Drag & drop or select files
-3. **Detection Results**: Side-by-side original and detected images
-4. **Live Camera**: Real-time detection via webcam
-5. **API Docs**: Test any endpoint directly from the browser
-
-## 🐛 Troubleshooting
-
-### Server Won't Start
-- Check if Python path in `config.py` is correct
-- Verify conda environment is activated
-- Ensure port 8080 is available
-
-### Detection Not Working
-- Verify `best.pt` model file exists in `yolov5/` directory
-- Check if input image is valid format (JPG, PNG)
-- Review console logs for error messages
-
-### No Results Displayed
-- Ensure browser allows loading of base64 images
-- Check browser developer console for JavaScript errors
-- Try the test page instead of main interface
-
-## 📝 Development
-
-### Adding New Detection Classes
-1. Retrain the model with new data
-2. Update `DETECTION_CLASSES` in `config.py`
-3. Replace `best.pt` with new model weights
-
-### Modifying Detection Parameters
-Edit `config.py`:
-- `CONFIDENCE_THRESHOLD`: Minimum detection confidence (0.0-1.0)
-- `IMAGE_SIZE`: Input image size (416, 640, etc.)
-- `IOU_THRESHOLD`: Overlap threshold for duplicate removal
 
 ## 📄 License
 
@@ -197,8 +160,3 @@ This project is licensed under the MIT License.
 
 **Shashank Chauhan**
 - Email: shashankchauhan8577@gmail.com
-- Project: Object Detection Web Application
-
----
-
-🎯 **Ready to detect objects!** Run `.\run_app.bat` to start the application.
