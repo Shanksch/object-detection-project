@@ -37,7 +37,7 @@ RUN rm -rf .git __pycache__ runs classify segment \
            tutorial.ipynb CONTRIBUTING.md README*.md \
            .gitignore .gitattributes .dockerignore \
            yolov5s.pt best.torchscript \
-           pyproject.toml requirements.txt
+           pyproject.toml
 
 
 # ── Stage 3: Final runtime image ──────────────────────────

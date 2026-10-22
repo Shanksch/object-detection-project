@@ -94,6 +94,12 @@ class ModelManager:
 
         try:
             import torch
+            import pathlib
+            import platform
+
+            # Fix for loading WindowsPath on Linux Posix system
+            if platform.system() != 'Windows':
+                pathlib.WindowsPath = pathlib.PosixPath
 
             start = time.perf_counter()
 
