@@ -551,6 +551,17 @@
                     <div class="upload-text">Drop your image here or click to browse</div>
                     <div class="upload-subtext">Supports JPG, PNG, WEBP up to 10MB</div>
                 </div>
+                <div style="margin: 1.25rem 0 0.75rem 0; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        <span><i class="fas fa-sliders-h" style="color: var(--primary-color); margin-right: 6px;"></i> Confidence Threshold</span>
+                        <span id="confValueText" style="font-weight: 600; color: var(--accent-color); font-size: 0.95rem;">25%</span>
+                    </div>
+                    <input type="range" id="confSlider" min="0.05" max="0.95" step="0.05" value="0.25" style="width: 100%; accent-color: var(--primary-color); cursor: pointer;" oninput="document.getElementById('confValueText').textContent = Math.round(this.value * 100) + '%'">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        <span>Sensitive (5%)</span>
+                        <span>Strict (95%)</span>
+                    </div>
+                </div>
                 <div class="btn-group">
                     <button class="btn btn-primary" id="detectBtn" disabled>
                         <i class="fas fa-search"></i>
@@ -663,6 +674,7 @@
                             <div class="stat-label">Process Time</div>
                         </div>
                     </div>
+                    <div id="detectedBadges" style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;"></div>
                 </div>
             </div>
         </section>
@@ -812,13 +824,15 @@
                 showStatus('🔍 AI is analyzing your image...', 'warning');
                 
                 const startTime = Date.now();
+                const confSlider = document.getElementById('confSlider');
+                const confValue = confSlider ? parseFloat(confSlider.value) : 0.25;
                 
                 const response = await fetch('/api/v1/predict', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ image: imageData })
+                    body: JSON.stringify({ image: imageData, confidence: confValue })
                 });
 
                 const data = await response.json();
@@ -830,7 +844,7 @@
                     displayDetectionResult(data.image);
                     const inferenceTime = data.metadata ? data.metadata.inference_time_ms : processTime;
                     const objectCount = data.metadata ? data.metadata.count : 0;
-                    updateDetectionStats(processTime, inferenceTime, objectCount);
+                    updateDetectionStats(processTime, inferenceTime, objectCount, data.detections);
                     showStatus(`✅ Object detection completed! Found ${objectCount} object(s) in ${Math.round(inferenceTime)}ms`, 'success');
                 } else {
                     showStatus('❌ Unexpected response format', 'error');
@@ -852,7 +866,7 @@
             document.getElementById('detectionInfo').style.display = 'block';
         }
 
-        function updateDetectionStats(processTime, inferenceTime, objectCount) {
+        function updateDetectionStats(processTime, inferenceTime, objectCount, detections = []) {
             detectionCount++;
             totalProcessTime += processTime;
             
@@ -860,6 +874,26 @@
             document.getElementById('objectCount').textContent = objectCount || 0;
             document.getElementById('processTime').textContent = `${Math.round(inferenceTime || processTime)}ms`;
             document.getElementById('avgSpeed').textContent = `${Math.round(totalProcessTime / detectionCount)}ms`;
+
+            // Update average confidence and badges
+            const badgesContainer = document.getElementById('detectedBadges');
+            if (badgesContainer) badgesContainer.innerHTML = '';
+
+            if (detections && detections.length > 0) {
+                const avgConf = detections.reduce((sum, d) => sum + (d.confidence || 0), 0) / detections.length;
+                document.getElementById('confidence').textContent = `${Math.round(avgConf * 100)}%`;
+
+                if (badgesContainer) {
+                    detections.forEach(d => {
+                        const badge = document.createElement('span');
+                        badge.style.cssText = 'background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #f8fafc; padding: 4px 10px; border-radius: 9999px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 5px;';
+                        badge.innerHTML = `<i class="fas fa-tag" style="color: var(--accent-color); font-size: 0.7rem;"></i> <strong>${d.class}</strong> (${Math.round((d.confidence || 0) * 100)}%)`;
+                        badgesContainer.appendChild(badge);
+                    });
+                }
+            } else {
+                document.getElementById('confidence').textContent = '-';
+            }
         }
 
         // Live camera functionality
@@ -1244,12 +1278,15 @@
 
                 // Make detection request
                 const startTime = Date.now();
+                const confSlider = document.getElementById('confSlider');
+                const confValue = confSlider ? parseFloat(confSlider.value) : 0.25;
+
                 const response = await fetch('/api/v1/predict', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ image: currentImageData })
+                    body: JSON.stringify({ image: currentImageData, confidence: confValue })
                 });
 
                 const data = await response.json();
@@ -1264,7 +1301,7 @@
                     displayDetectionResult(data.image);
                     const inferenceTime = data.metadata ? data.metadata.inference_time_ms : processTime;
                     const objectCount = data.metadata ? data.metadata.count : 0;
-                    updateDetectionStats(processTime, inferenceTime, objectCount);
+                    updateDetectionStats(processTime, inferenceTime, objectCount, data.detections);
                     
                     console.log(`Auto-detection completed in ${processTime}ms — ${objectCount} objects`);
                 }

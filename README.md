@@ -1,3 +1,13 @@
+---
+title: Object Detection Studio
+emoji: 🎯
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🎯 Object Detection Web Application
 
 A FastAPI-based web application for real-time object detection using YOLOv5. Upload images or use the REST API to detect objects with bounding boxes and confidence scores.
